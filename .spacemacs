@@ -31,55 +31,82 @@ values."
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(
+     html
      xkcd
      ipython-notebook
+     (ipython-notebook :variables
+                       ein:notebook-create-checkpoint-on-save nil
+                       ein:worksheet-enable-undo t)
      markdown
      csv
      c-c++
      (c-c++ :variables
             c-c++-default-mode-for-headers 'c++-mode
             c-c++-enable-clang-support t)
-     ;; ess
-     ;; (ess :variables
-     ;;      ess-enable-smart-equals t)
+     ess
+     (ess :variables
+          ess-enable-smart-equals t)
      yaml
      windows-scripts
      sql
      python
+     (python :variables
+             python-enable-yapf-format-on-save t
+             python-sort-imports-on-save t)
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
      ;; <M-m f e R> (Emacs style) to install them.
      ;; ----------------------------------------------------------------
      ivy
+     ;; helm
      auto-completion
+     (auto-completion :variables
+                      auto-completion-enable-sort-by-usage t
+                      auto-completion-enable-help-tooltip 'manual
+                      auto-completion-enable-snippets-in-popup t)
      ;; sr-speedbar
      better-defaults
      emacs-lisp
      git
      ;; markdown
      org
-     ;; (org :variables org-projectile-file "TODOs.org")
+     (org :variables
+          org-clock-persist 'history
+          org-agenda-files (list "~/org/work.org"
+                                 "~/org/school.org"
+                                 "~/org/home.org")
+          ;; org-projectile-file "TODOs.org"
+          )
+
+     ;; ;; (org :variables org-projectile-file "TODOs.org")
      ;;(shell :variables
      ;;       shell-default-term-shell "c:/Program Files/Git/bin/bash.exe"
      ;;       shell-command-switch nil "-ic")
      ;;        shell-default-height 30
      ;;        shell-default-position 'bottom)
-     ;; spell-checking
+     spell-checking
      syntax-checking
-     (python :variables
-             python-enable-yapf-format-on-save t
-             python-sort-imports-on-save t)
      imenu-list
      themes-megapack
      latex
      ;; version-control
+     java
+     (java :variables
+           meghanada-java-path (expand-file-name "bin/java.exe" (getenv "JAVA_HOME")))
+     ;; (java :variables
+     ;;       java-backend 'ensime)
+     ranger
+     (ranger :variables
+             ranger-show-preview t)
      )
    ;; List of additional packages that will be installed without being
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '()
+   dotspacemacs-additional-packages '(yasnippet-snippets
+                                      ag)
+
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
@@ -108,14 +135,14 @@ values."
    ;; This variable has no effect if Emacs is launched with the parameter
    ;; `--insecure' which forces the value of this variable to nil.
    ;; (default t)
-   dotspacemacs-elpa-https nil
+   dotspacemacs-elpa-https t
    ;; Maximum allowed time in seconds to contact an ELPA repository.
    dotspacemacs-elpa-timeout 5
    ;; If non nil then spacemacs will check for updates at startup
    ;; when the current branch is not `develop'. Note that checking for
    ;; new versions works via git commands, thus it calls GitHub services
    ;; whenever you start Emacs. (default nil)
-   dotspacemacs-check-for-update nil
+   dotspacemacs-check-for-update t
    ;; If non-nil, a form that evaluates to a package directory. For example, to
    ;; use different package directories for different Emacs versions, set this
    ;; to `emacs-version'.
@@ -327,6 +354,8 @@ executes.
  This function is mostly useful for variables that need to be set
 before packages are loaded. If you are unsure, you should try in setting them in
 `dotspacemacs/user-config' first."
+  ;; (push '("melpa-stable" . "stable.melpa.org/packages/") configuration-layer-elpa-archives)
+  ;; (push '(ensime . "melpa-stable") package-pinned-packages)
   )
 
 (defun dotspacemacs/user-config ()
@@ -336,187 +365,113 @@ layers configuration.
 This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
-  ;; (let (
-  ;;       (conda-paths
-  ;;       '("C:/Users/bsorenson/AppData/Local/Continuum/anaconda3"
-  ;;         "C:/Users/bsorenson/AppData/Local/Continuum/anaconda3/Library/mingw-w64/bin"
-  ;;         "C:/Users/bsorenson/AppData/Local/Continuum/anaconda3/Library/usr/bin"
-  ;;         "C:/Users/bsorenson/AppData/Local/Continuum/anaconda3/Library/bin"
-  ;;         "C:/Users/bsorenson/AppData/Local/Continuum/anaconda3/Scripts"
-  ;;         "C:/Users/bsorenson/AppData/Local/Continuum/anaconda3/bin"
-  ;;         ))
-  ;;       )
-  ;;   (setenv "PATH"
-  ;;           (concat
-  ;;            (mapconcat 'identity conda-paths ";") ";"
-  ;;            (getenv "PATH")
-  ;;            ))
-  ;;   (setq exec-path (append conda-paths exec-path)))
+  (let (
+        (conda-paths
+         (mapcar
+          'substitute-env-in-file-name
+          '("$LOCALAPPDATA/Continuum/anaconda3"
+            "$LOCALAPPDATA/Continuum/anaconda3/Library/mingw-w64/bin"
+            "$LOCALAPPDATA/Continuum/anaconda3/Library/usr/bin"
+            "$LOCALAPPDATA/Continuum/anaconda3/Library/bin"
+            "$LOCALAPPDATA/Continuum/anaconda3/Scripts"
+            "$LOCALAPPDATA/Continuum/anaconda3/bin"
+            "$LOCALAPPDATA/Strawberry/perl/vendor/lib"
+            "$LOCALAPPDATA/Strawberry/perl/bin"
+            "$LOCALAPPDATA/Strawberry/perl/lib"
+            "$LOCALAPPDATA/Strawberry/perl/site/bin"
+            "$LOCALAPPDATA/Strawberry/perl/site/lib"
+            "$USERPROFILE/git/usr/bin"
+            "$USERPROFILE/ag"
+            ;; "$USERPROFILE/hunspell/share/hunspell"
+            "$USERPROFILE/hunspell/bin"
+            "\"$LOCALAPPDATA/Programs/MiKTeX 2.9/miktex/bin/x64\""
+            "$LOCALAPPDATA/gradle-4.7/bin"
+            ;; "\"C:\\Program Files (x86)/Aspell/bin\""
+            "\"C:\\Program Files\Java\jdk1.8.0_171\bin\""
+            ))
+         ))
+    (setenv "PATH"
+            (concat
+             (mapconcat 'identity conda-paths ";") ";"
+             (getenv "PATH")
+             ))
+    (setq exec-path (append conda-paths exec-path)))
+
+  (let (
+        (dict-paths
+         (mapconcat
+          'identity
+          '("C:/Hunspell/"
+            "\"C:/Users/bsorenson/Application Data/OpenOffice.org 2/user/wordbook\""
+            "\"C:/Users/bsorenson/hunspell/bin/../share/hunspell\""
+            "\"C:/Program files/OpenOffice.org 2.4/share/dict/ooo/\""
+            "\"C:/Program files/OpenOffice.org 2.3/share/dict/ooo/\""
+            "\"C:/Program files/OpenOffice.org 2.2/share/dict/ooo/\""
+            "\"C:/Program files/OpenOffice.org 2.1/share/dict/ooo/\""
+            "\"C:/Program files/OpenOffice.org 2.0/share/dict/ooo/\"") ";")))
+    (setenv "DICTPATH" dict-paths))
+
+  (with-eval-after-load 'org
+    (org-clock-persistence-insinuate))
 
   (setq projectile-indexing-method 'native)
-  (setq org-agenda-files (list "~/org/work.org"
-                               "~/org/school.org"
-                               "~/org/home.org"))
-  (setq org-clock-persist 'history)
-  (org-clock-persistence-insinuate)
+  (setq markdown-command "C:/Users/bsorenson/AppData/Local/Pandoc/pandoc.exe")
   (setq flycheck-check-syntax-automatically '(mode-enabled save))
-  (flycheck-add-next-checker 'python-flake8 'python-pylint)
+  (with-eval-after-load 'flycheck
+    (flycheck-add-next-checker 'python-flake8 'python-pylint))
+
   (indent-guide-global-mode)
   (setq company-idle-delay 0.5)
-
-  (require 'anaconda-mode)
+  ;; (require 'anaconda-mode)
   (remove-hook 'anaconda-mode-response-read-fail-hook
                'anaconda-mode-show-unreadable-response)
 
-  (add-hook 'ess-mode-hook
-            (lambda ()
-              (ess-toggle-underscore nil)))
+  (add-hook 'ein:notebook-mode-hook
+            'smartparens-mode)
 
   (setenv "WORKON_HOME" "c:/Users/bsorenson/AppData/Local/Continuum/anaconda3/envs")
 
-  
+  (setq ein:jupyter-server-args '("--no-browser"))
+  (setq-default ispell-program-name "c:/Users/bsorenson/hunspell/bin/hunspell.exe")
+  (setenv "LANG" "en_US")
+  (with-eval-after-load "ispell"
+    (setq ispell-really-hunspell t)
+    (setq ispell-program-name "hunspell")
+    (setq ispell-local-dictionary-alist
+          '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US") nil utf-8)))))
 
-  (set-default 'tramp-default-method "plink")
-  ;; (require 'sr-speedbar)
-  (setq explicit-shell-file-name "~/conda-shell.cmd")
-  ;; (setq explicit-bash.exe-args '("--login" "-i"))
-  ;; (server-start)
-  ;; (setq pylookup-program (concat pylo  "/pylookup.bat"))
-)
-;; Do not write anything past this comment. This is where Emacs will
-;; auto-generate custom variable definitions.
+(defun dotspacemacs/emacs-custom-settings ()
+  "Emacs custom settings.
+This is an auto-generated function, do not modify its content directly, use
+Emacs customize menu instead.
+This function is called at the very end of Spacemacs initialization."
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(company-clang-executable "~/LLVM/bin/clang.exe")
  '(package-selected-packages
    (quote
-    (flyspell-correct-ivy flyspell-correct spinner org-plus-contrib parent-mode hide-comnt flx ghub let-alist anzu request bind-map bind-key f popup xterm-color shell-pop multi-term eshell-z eshell-prompt-extras esh-help xkcd company-auctex auctex-latexmk auctex skewer-mode request-deferred websocket deferred js2-mode simple-httpd dash-functional iedit s org-category-capture goto-chg pkg-info epl packed async csv-mode markdown-mode dash projectile hydra disaster company-c-headers cmake-mode clang-format powerline smartparens highlight evil undo-tree helm helm-core avy diminish gitignore-mode magit magit-popup git-commit with-editor ess-smart-equals ess-R-object-popup ess-R-data-view ctable ess julia-mode zonokai-theme zenburn-theme zen-and-art-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme tronesque-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme pastels-on-dark-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme niflheim-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme firebelly-theme farmhouse-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme imenu-list sr-speedbar format-sql sql-indent powershell alert log4e gntp pos-tip flycheck company yasnippet auto-complete anaconda-mode pythonic wgrep smex ivy-hydra counsel-projectile counsel swiper ivy yapfify yaml-mode ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package unfill toc-org spaceline smeargle restart-emacs rainbow-delimiters pyvenv pytest pyenv-mode py-isort popwin pip-requirements persp-mode pcre2el paradox orgit org-projectile org-present org-pomodoro org-download org-bullets open-junk-file neotree mwim move-text mmm-mode markdown-toc magit-gitflow macrostep lorem-ipsum live-py-mode linum-relative link-hint info+ indent-guide hy-mode hungry-delete htmlize hl-todo highlight-parentheses highlight-numbers highlight-indentation hihde-comnt help-fns+ helm-themes helm-swoop helm-pydoc helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ gh-md fuzzy flyspell-correct-helm flycheck-pos-tip flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav ein dumb-jump diff-hl define-word cython-mode company-statistics company-anaconda column-enforce-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-dictionary auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
- '(paradox-github-token t)
+    (zenburn-theme zen-and-art-theme yasnippet-snippets yapfify yaml-mode xkcd ws-butler winum white-sand-theme wgrep web-mode web-beautify volatile-highlights vi-tilde-fringe uuidgen unfill underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme toc-org tao-theme tangotango-theme tango-plus-theme tango-2-theme tagedit symon sunny-day-theme sublime-themes subatomic256-theme subatomic-theme string-inflection sql-indent spaceline-all-the-icons spaceline powerline spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme smex smeargle slim-mode seti-theme scss-mode sass-mode reverse-theme restart-emacs rebecca-theme ranger rainbow-delimiters railscasts-theme pyvenv pytest pyenv-mode py-isort purple-haze-theme pug-mode professional-theme powershell popwin planet-theme pippel pipenv pip-requirements phoenix-dark-pink-theme phoenix-dark-mono-theme persp-mode password-generator paradox spinner overseer orgit organic-green-theme org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download org-bullets org-brain open-junk-file omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme ob-ipython dash-functional noctilux-theme neotree naquadah-theme nameless mwim mvn mustang-theme move-text monokai-theme monochrome-theme molokai-theme moe-theme mmm-mode minimal-theme meghanada maven-test-mode material-theme markdown-toc markdown-mode majapahit-theme magit-svn magit-gitflow madhat2r-theme macrostep lush-theme lorem-ipsum live-py-mode link-hint light-soap-theme kaolin-themes jbeans-theme jazz-theme ivy-yasnippet ivy-xref ivy-rtags ivy-purpose window-purpose ivy-hydra ir-black-theme inkpot-theme indent-guide importmagic epc concurrent impatient-mode imenu-list hungry-delete htmlize hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation heroku-theme hemisu-theme helm-make helm helm-core hc-zenburn-theme haml-mode gruvbox-theme gruber-darker-theme groovy-mode groovy-imports pcache grandshell-theme gradle-mode gotham-theme google-translate google-c-style golden-ratio gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md gandalf-theme fuzzy flyspell-correct-ivy flyspell-correct flycheck-rtags flycheck-pos-tip flycheck flx-ido flx flatui-theme flatland-theme fill-column-indicator farmhouse-theme fancy-battery eziam-theme eyebrowse expand-region exotica-theme evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-org evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit magit magit-popup git-commit ghub with-editor evil-lisp-state evil-lion evil-indent-plus evil-iedit-state iedit evil-goggles evil-exchange evil-escape evil-ediff evil-cleverparens smartparens paredit evil-args evil-anzu anzu eval-sexp-fu highlight ess-smart-equals ess-R-data-view ctable ess julia-mode espresso-theme ensime sbt-mode scala-mode emmet-mode elisp-slime-nav ein skewer-mode request-deferred websocket request deferred js2-mode simple-httpd editorconfig dumb-jump dracula-theme doom-themes all-the-icons memoize django-theme disaster define-word darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cython-mode cyberpunk-theme csv-mode counsel-projectile projectile pkg-info epl counsel-css counsel swiper ivy company-web web-completion-data company-statistics company-rtags rtags company-quickhelp pos-tip company-emacs-eclim eclim company-c-headers company-auctex company-anaconda company column-enforce-mode color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme clean-aindent-mode clang-format cherry-blossom-theme centered-cursor-mode busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme auto-yasnippet yasnippet auto-highlight-symbol auto-dictionary auto-compile packed auctex-latexmk auctex apropospriate-theme anti-zenburn-theme anaconda-mode pythonic f ample-zen-theme ample-theme alect-themes aggressive-indent ag s dash afternoon-theme ace-window ace-link avy ac-ispell auto-complete popup which-key use-package pcre2el org-plus-contrib hydra font-lock+ evil goto-chg undo-tree diminish bind-map bind-key async)))
  '(safe-local-variable-values
    (quote
     ((eval setenv "PYTHONPATH"
            (mapconcat
-            (quote identity)
+            (quote substitute-in-file-name)
             (quote
-             ("c:/LiClipse Workspace/RaschLib/src" "c:/Users/bsorenson/Scripts/raw_to_theta/src"))
+             ("$CODE_HOME/RaschLib/src" "$CODE_HOME/HDF5utils/src" "$CODE_HOME/PSSA Tech Report/src" "$CODE_HOME/Keystone/src" "$CODE_HOME/SBAC"))
             ";"))
      (eval setenv "PYTHONPATH"
            (mapconcat
-            (quote identity)
+            (quote substitute-in-file-name)
             (quote
-             ("c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/Users/bsorenson/Scripts/raw_to_theta/src" "c:/LiClipse Workspace/Keystone/src" "c:/LiClipse Workspace/SQL" "c:/LiClipse Workspace/Michigan/src" "c:/LiClipse Workspace/NevadaCATRescore" "c:/LiClipse Workspace/HDF5utils/src"))
+             ("$CODE_HOME/RaschLib/src" "$CODE_HOME/Keystone/src" "$CODE_HOME/PSSA Tech Report/src" "$CODE_HOME/PSSA/src" "$CODE_HOME/Michigan/src" "j:/NY/Technical Report/common_python_lib/src" "$CODE_HOME/CATCheck/src" "$CODE_HOME/raw_to_theta/src" "$CODE_HOME/HDF5utils/src" "$CODE_HOME/SBAC"))
             ";"))
      (eval setenv "PYTHONPATH"
            (mapconcat
-            (quote identity)
+            (quote substitute-in-file-name)
             (quote
-             ("c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/Users/bsorenson/Scripts/raw_to_theta/src" "c:/LiClipse Workspace/Keystone/src" "c:/LiClipse Workspace/SQL" "c:/LiClipse Workspace/Michigan/src" "c:/LiClipse Workspace/NevadaCATRescore"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/LiClipse Workspace/Py3Scrambler/src" "c:/LiClipse Workspace/aima-python"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/LiClipse Workspace/Py3Scrambler/src" "c:/LiClipse Workspace/aima-python/aima"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/LiClipse Workspace/RaschLib/src" "c:/LiClipse Workspace/Keystone/src" "c:/LiClipse Workspace/PSSA Tech Report/src" "c:/LiClipse Workspace/Michigan/src" "j:/NY/Technical Report/common_python_lib/src" "c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/Users/bsorenson/Scripts/raw_to_theta/src"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/LiClipse Workspace/SBAC" "c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/LiClipse Workspace/RawtoTheta/src" "c:/LiClipse Workspace/SQL" "c:/LiClipse Workspace/Keystone/src" "c:/LiClipse Workspace/PSSA/src"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/LiClipse Workspace/RaschLib/src" "c:/LiClipse Workspace/Keystone/src" "c:/LiClipse Workspace/PSSA Tech Report/src" "c:/LiClipse Workspace/PSSA/src" "c:/LiClipse Workspace/Michigan/src" "j:/NY/Technical Report/common_python_lib/src" "c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/LiClipse Workspace/RawtoTheta/src" "c:/LiClipse Workspace/HDF5utils/src" "c:/LiClipse Workspace/SBAC"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/LiClipse Workspace/RaschLib/src" "c:/LiClipse Workspace/Keystone/src" "c:/LiClipse Workspace/PSSA Tech Report/src" "c:/LiClipse Workspace/PSSA/src" "c:/LiClipse Workspace/Michigan/src" "j:/NY/Technical Report/common_python_lib/src" "c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/Users/bsorenson/Scripts/raw_to_theta" "c:/LiClipse Workspace/HDF5utils/src" "c:/LiClipse Workspace/SBAC"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/LiClipse Workspace/RaschLib/src" "c:/LiClipse Workspace/Keystone/src" "c:/LiClipse Workspace/PSSA Tech Report/src" "c:/LiClipse Workspace/Michigan/src" "j:/NY/Technical Report/common_python_lib/src" "c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/Users/bsorenson/Scripts/raw_to_theta" "c:/LiClipse Workspace/HDF5utils/src" "c:/LiClipse Workspace/SBAC"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/LiClipse Workspace/RaschLib/src" "c:/LiClipse Workspace/Keystone/src" "c:/LiClipse Workspace/PSSA Tech Report/src" "c:/LiClipse Workspace/Michigan/src" "j:/NY/Technical Report/common_python_lib/src" "c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/Users/bsorenson/Scripts/raw_to_theta" "c:/LiClipse Workspace/HDF5utils/src"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/LiClipse Workspace/SBAC" "c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/Users/bsorenson/Scripts/raw_to_theta" "c:/LiClipse Workspace/SQL" "c:/LiClipse Workspace/Keystone/src" "c:/LiClipse Workspace/PSSA/src"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/LiClipse Workspace/SBAC" "c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/Users/bsorenson/Scripts/raw_to_theta" "c:/LiClipse Workspace/SQL" "c:/LiClipse Workspace/Keystone/src"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/LiClipse Workspace/RaschLib/src" "c:/LiClipse Workspace/Keystone/src" "c:/LiClipse Workspace/PSSA Tech Report/src" "c:/LiClipse Workspace/Michigan/src" "j:/NY/Technical Report/common_python_lib/src" "c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/Users/bsorenson/Scripts/raw_to_theta"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/LiClipse Workspace/SBAC" "c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/Users/bsorenson/Scripts/raw_to_theta" "c:/LiClipse Workspace/SQL"))
-            ";"))
-     (eval shell-command "activate p3scrambler")
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/LiClipse Workspace/SBAC" "c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/Users/bsorenson/Scripts/raw_to_theta"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/LiClipse Workspace/RaschLib/src"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/Users/bsorenson/Scripts/raw_to_theta" "c:/LiClipse Workspace/Keystone/src" "c:/LiClipse Workspace/SQL" "c:/LiClipse Workspace/Michigan/src" "c:/LiClipse Workspace/NevadaCATRescore"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/Users/bsorenson/Scripts/raw_to_theta" "c:/LiClipse Workspace/Keystone/src" "c:/LiClipse Workspace/SQL" "c:/LiClipse Workspace/Michigan/src"))
-            ";"))
-     (eval setenv "PYTHONPATH"
-           (mapconcat
-            (quote identity)
-            (quote
-             ("c:/Users/bsorenson/Scripts/CATCheck_LOCAL/src" "c:/Users/bsorenson/Scripts/raw_to_theta" "c:/LiClipse Workspace/Keystone/src" "c:/LiClipse Workspace/SQL"))
+             ("$CODE_HOME/SBAC" "$CODE_HOME/CATCheck/src" "$CODE_HOME/raw_to_theta/src" "$CODE_HOME/SQL" "$CODE_HOME/Keystone/src" "$CODE_HOME/PSSA/src" "$CODE_HOME/HDF5utils/src"))
             ";"))))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -524,3 +479,4 @@ you should place your code here."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+)
